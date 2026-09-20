@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Saha & Bahçe Operasyon Paneli</title>
+    <style>
+        :root {
+            --bg-color: #12151a;
+            --card-bg: #1c2026;
+            --card-border: #2e3540;
+            --text-light: #f0f3f7;
+            --text-muted: #8c9ba8;
+            
+            --corporate-blue: #2563eb;
+            --priority-slate: #f0ad4e;
+            --success-steel: #059669;
+            --danger-red: #dc2626;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-light);
+            margin: 0;
+            padding: 16px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container { width: 100%; max-width: 980px; }
+
+        /* Kilit Ekranı (Login) */
+        .login-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 70vh;
+        }
+
+        .login-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            padding: 30px;
+            border-radius: 8px;
+            width: 100%;
+            max-width: 360px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        }
+
+        .login-card h2 { margin-top: 0; font-size: 1.2rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        .login-card p { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 20px; }
+
+        .login-input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 4px;
+            border: 1px solid var(--card-border);
+            background-color: var(--bg-color);
+            color: var(--text-light);
+            box-sizing: border-box;
+            font-size: 1rem;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--corporate-blue);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-weight: 700;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+        }
+
+        /* Panel Ana İçerik */
+        .app-content { display: none; }
+
+        header {
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--card-border);
+            padding-bottom: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        @media (min-width: 600px) {
+            header {
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+            }
+        }
+
+        h1 { margin: 0; font-size: 1.4rem; text-transform: uppercase; font-weight: 700; }
+        p.subtitle { color: var(--text-muted); margin: 4px 0 0 0; font-size: 0.85rem; }
+
+        .auth-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--card-bg);
+            padding: 8px 12px;
+            border-radius: 4px;
+            border: 1px solid var(--card-border);
+        }
+
+        .mode-badge {
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 4px 8px;
+            border-radius: 2px;
+            text-transform: uppercase;
+        }
+        .mode-badge.guest { background: #475569; color: var(--text-light); }
+        .mode-badge.admin { background: var(--success-steel); color: white; }
+
+        .btn-logout {
+            background: var(--danger-red);
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .dashboard-bar {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+            background-color: var(--card-bg);
+            padding: 16px;
+            border-radius: 6px;
+            border: 1px solid var(--card-border);
+        }
+
+        @media (min-width: 600px) {
+            .dashboard-bar { grid-template-columns: 2fr 1fr 1fr; }
+        }
+
+        .progress-container { display: flex; flex-direction: column; gap: 6px; }
+        .progress-bar-bg { background: var(--bg-color); height: 8px; border-radius: 2px; overflow: hidden; border: 1px solid var(--card-border); }
+        .progress-bar-fill { background: var(--corporate-blue); height: 100%; width: 0%; transition: width 0.3s; }
+
+        .streak-box, .pomodoro-box {
+            text-align: center;
+            background: var(--bg-color);
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid var(--card-border);
+        }
+
+        .streak-title, .pomo-title { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; }
+        .streak-count { font-size: 1rem; font-weight: 700; color: var(--text-light); margin-top: 2px; }
+        .pomo-timer { font-size: 1.1rem; font-weight: 700; color: var(--corporate-blue); margin: 2px 0; font-family: monospace; }
+
+        .pomo-btn {
+            background: var(--card-border); color: var(--text-light); border: none;
+            padding: 4px 10px; border-radius: 3px; cursor: pointer; font-size: 0.75rem; font-weight: 600; text-transform: uppercase;
+        }
+
+        .main-layout { display: grid; grid-template-columns: 1fr; gap: 20px; }
+        @media (min-width: 820px) {
+            .main-layout { grid-template-columns: 320px 1fr; }
+            .main-layout.guest-mode { grid-template-columns: 1fr; }
+        }
+
+        .add-task-card {
+            background-color: var(--card-bg); padding: 16px; border-radius: 6px; border: 1px solid var(--card-border);
+        }
+        .add-task-card h2 {
+            margin-top: 0; font-size: 1rem; text-transform: uppercase; border-bottom: 1px solid var(--card-border); padding-bottom: 8px; margin-bottom: 12px;
+        }
+
+        .form-group { margin-bottom: 12px; }
+        label { display: block; margin-bottom: 4px; color: var(--text-muted); font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
+        input, textarea, select {
+            width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--card-border); background-color: var(--bg-color); color: var(--text-light); box-sizing: border-box; font-size: 0.85rem;
+        }
+
+        button.btn-add {
+            width: 100%; padding: 10px; background-color: var(--corporate-blue); color: white; border: none; border-radius: 4px; font-weight: 700; cursor: pointer; text-transform: uppercase; font-size: 0.8rem;
+        }
+
+        .filter-bar { display: flex; gap: 8px; margin-bottom: 12px; }
+        .filter-btn {
+            background: var(--card-bg); border: 1px solid var(--card-border); color: var(--text-muted); padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 0.75rem; font-weight: 600;
+        }
+        .filter-btn.active { background: var(--corporate-blue); color: white; border-color: var(--corporate-blue); }
+
+        .task-list { display: flex; flex-direction: column; gap: 10px; }
+        .task-item {
+            background-color: var(--card-bg); padding: 14px; border-radius: 4px; display: flex; flex-direction: column; gap: 8px; border: 1px solid var(--card-border); border-left: 4px solid var(--priority-slate);
+        }
+        .task-item.completed { opacity: 0.4; }
+        .task-item.completed h3 { text-decoration: line-through; }
+
+        .task-header { display: flex; justify-content: space-between; align-items: flex-start; }
+        .task-info h3 { margin: 0; font-size: 0.95rem; font-weight: 600; }
+        .meta-tags { display: flex; gap: 6px; margin-top: 4px; align-items: center; }
+        .task-duration { font-size: 0.7rem; color: var(--text-muted); background: var(--bg-color); padding: 2px 6px; border-radius: 2px; border: 1px solid var(--card-border); }
+        .routine-tag { font-size: 0.7rem; color: var(--corporate-blue); background: rgba(37, 99, 235, 0.1); padding: 2px 6px; border-radius: 2px; border: 1px solid rgba(37, 99, 235, 0.3); }
+
+        .badge { color: #222; background-color: var(--priority-slate); padding: 2px 6px; border-radius: 2px; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; }
+
+        .action-buttons { display: flex; gap: 6px; align-items: center; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 8px; flex-wrap: wrap; }
+        .btn-action {
+            background: var(--bg-color); border: 1px solid var(--card-border); color: var(--text-muted); padding: 4px 8px; border-radius: 3px; cursor: pointer; font-size: 0.7rem; font-weight: 600;
+        }
+
+        .task-details { display: none; padding-top: 6px; color: var(--text-muted); font-size: 0.8rem; border-top: 1px dashed var(--card-border); margin-top: 4px; }
+        .subtasks-list { margin-top: 4px; padding-left: 16px; color: var(--text-light); }
+        
+        /* Görsel Alanı */
+        .task-image-preview {
+            margin-top: 8px;
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 4px;
+            border: 1px solid var(--card-border);
+            object-fit: cover;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- Giriş Ekranı -->
+    <div class="login-screen" id="loginScreen">
+        <div class="login-card">
+            <h2>Sisteme Giriş</h2>
+            <p>Erişim sağlamak için şifrenizi girin</p>
+            <input type="password" id="mainPassInput" class="login-input" placeholder="Giriş Şifresi" />
+            <button class="btn-login" onclick="login()">Paneli Aç</button>
+        </div>
+    </div>
+
+    <!-- Uygulama Paneli -->
+    <div class="app-content" id="appContent">
+        <header>
+            <div>
+                <h1>Saha & Bahçe Operasyon Paneli</h1>
+                <p class="subtitle">Genel Çalışma ve Bakım Planı</p>
+            </div>
+            <div class="auth-status">
+                <span id="modeBadge" class="mode-badge guest">MİSAFİR MODU</span>
+                <button class="btn-logout" onclick="logout()">KİLİTLE / ÇIKIŞ</button>
+            </div>
+        </header>
+
+        <div class="dashboard-bar">
+            <div class="progress-container">
+                <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;" id="progressText">İLERLEME: %0</span>
+                <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressBar"></div></div>
+            </div>
+            <div class="streak-box">
+                <div class="streak-title">GÜNLÜK SERİ</div>
+                <div class="streak-count" id="streakCount">1 GÜN</div>
+            </div>
+            <div class="pomodoro-box">
+                <div class="pomo-title">ODAK SAYACI</div>
+                <div class="pomo-timer" id="pomoTimer">25:00</div>
+                <button class="pomo-btn" id="btnPomoStart">BAŞLAT</button>
+            </div>
+        </div>
+
+        <div class="main-layout guest-mode" id="mainLayout">
+            <div class="add-task-card" id="adminForm" style="display: none;">
+                <h2>Yeni Görev Ekle</h2>
+                <div class="form-group">
+                    <label>Görev Tipi</label>
+                    <select id="taskType">
+                        <option value="single">Tek Seferlik Görev</option>
+                        <option value="routine">Düzenli Rutin Operasyon</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Görev Başlığı</label>
+                    <input type="text" id="taskTitle" placeholder="Örn: Yeni Görev">
+                </div>
+                <div class="form-group">
+                    <label>Tahmini Süre (Dakika)</label>
+                    <input type="number" id="taskDuration" placeholder="Örn: 60">
+                </div>
+                <div class="form-group">
+                    <label>Açıklama / Notlar</label>
+                    <textarea id="taskDesc" rows="2" placeholder="Gereksinimler ve detaylar..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>📷 Görev Görseli (Fotoğraf / Kamera)</label>
+                    <input type="file" id="taskImageInput" accept="image/*">
+                </div>
+                <button class="btn-add" id="btnAddTask">Görevi Kaydet</button>
+            </div>
+
+            <div>
+                <div class="filter-bar">
+                    <button class="filter-btn active" onclick="filterTasks('all', this)">TÜMÜ</button>
+                    <button class="filter-btn" onclick="filterTasks('routine', this)">RUTİNLER</button>
+                </div>
+                <div class="task-list" id="taskList"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const defaultTasks = [
+        { id: 1, type: 'single', title: 'Pencere Önleri Taş Cilası', duration: '90', priority: 'slate', desc: 'Bütün pencere önlerine taş cilası uygulaması yapılacak.', completed: false, subtasks: [], image: '' },
+        { id: 2, type: 'single', title: 'Tahta Bölümler Cilalanması', duration: '120', priority: 'slate', desc: 'Ahşap/tahta olan tüm yüzeylere cilalama yapılacak.', completed: false, subtasks: [], image: '' },
+        { id: 3, type: 'single', title: 'Mutfak Önü & Pencereleri Taş Cilası', duration: '60', priority: 'slate', desc: 'Mutfak önlerine ve önündeki pencerelere taş cilası yapılacak.', completed: false, subtasks: [], image: '' },
+        { id: 4, type: 'single', title: 'Hasan Abi ile Taş Birleştirme & Harç', duration: '120', priority: 'slate', desc: 'Salonun yeri süpürülecek. Hasan abiden taşların nasıl birleştirileceği öğrenilip aradaki boşluklara harç yapılacak.', completed: false, subtasks: [], image: '' },
+        { id: 5, type: 'single', title: 'Garaj Depo Temizlik & Tüm Alan Düzenleme', duration: '180', priority: 'slate', desc: 'Garaj depo tamamen boşaltılacak, temizlenecek ve tüm alan genel çalışma için yeniden düzenli dizilecek.', completed: false, subtasks: [], image: '' },
+        { id: 6, type: 'single', title: 'Beyaz Depo Temizlik & Düzenleme', duration: '120', priority: 'slate', desc: 'Beyaz depo boşaltılacak, temizlenip tekrardan dizilecek.', completed: false, subtasks: [], image: '' },
+        { id: 7, type: 'routine', title: 'Çim Biçme & Tüm Saha Hazırlığı', duration: '90', priority: 'slate', desc: 'Bahçedeki tüm alan için genel çim biçme ve saha düzenlemesi yapılacak.', completed: false, subtasks: [], image: '' },
+        { id: 8, type: 'single', title: 'Cam Soda Önü Tırpanlama & Kuruntu Temizliği', duration: '60', priority: 'slate', desc: 'Bahçede cam sodanın önü tırpanlanacak ve tüm alandaki kuruntular tamamen temizlenecek.', completed: false, subtasks: [], image: '' },
+        { id: 9, type: 'single', title: 'Arka Bostan & Tüm Saha Ekim Hazırlığı', duration: '150', priority: 'slate', desc: 'Arka taraftaki 3 kare bostan alanı ve tüm çalışma sahası ekim için tamamen hazır hale getirilecek.', completed: false, subtasks: [], image: '' },
+        { id: 10, type: 'single', title: 'Saksı Toprakları Havalandırma & Ekim', duration: '60', priority: 'slate', desc: 'Saksıların toprakları havalandırılacak ve yeni ekimler yapılacak.', completed: false, subtasks: [], image: '' },
+        { id: 11, type: 'single', title: 'Beyaz Koltuk Tamiri', duration: '45', priority: 'slate', desc: 'Beyaz koltuğun tamiratı yapılacak.', completed: false, subtasks: [], image: '' },
+        { id: 12, type: 'single', title: 'Depodan Çıkan Aletlerin Kontrolü', duration: '30', priority: 'slate', desc: 'Depodan çıkan aletlerin kontrolü yapıldı ve eksikler tespit edildi.', completed: true, subtasks: [], image: '' },
+        { id: 13, type: 'single', title: 'Motor Parça Siparişi Bildirimi', duration: '20', priority: 'slate', desc: 'Motorların eksik parçaları tespit edilip sipariş bildirimi yapıldı.', completed: true, subtasks: [], image: '' },
+        { id: 14, type: 'single', title: 'Motor Eksik Parça Montajı & Tamirat', duration: '90', priority: 'slate', desc: 'Sipariş edilen parçalar 2 motora takılarak tamirat tamamlandı.', completed: true, subtasks: [], image: '' }
+    ];
+
+    let tasks = JSON.parse(localStorage.getItem('my_site_tasks_v7')) || defaultTasks;
+    let isAdmin = false;
+
+    const ADMIN_PASSWORDS = ["453545", "452745"];
+    const GUEST_PASSWORDS = ["12345", "67899"];
+
+    let currentFilter = 'all';
+    let pomoTime = 25 * 60;
+    let pomoInterval = null;
+
+    const taskList = document.getElementById('taskList');
+    const btnAddTask = document.getElementById('btnAddTask');
+
+    function saveTasks() {
+        localStorage.setItem('my_site_tasks_v7', JSON.stringify(tasks));
+        renderTasks();
+        updateDashboard();
+    }
+
+    function login() {
+        let passVal = document.getElementById('mainPassInput').value.trim();
+        if (ADMIN_PASSWORDS.includes(passVal)) {
+            isAdmin = true;
+            setupPanel('YÖNETİCİ MODU', 'admin', true);
+        } else if (GUEST_PASSWORDS.includes(passVal)) {
+            isAdmin = false;
+            setupPanel('MİSAFİR MODU', 'guest', false);
+        } else {
+            alert("Geçersiz şifre girdiniz!");
+        }
+    }
+
+    function logout() {
+        document.getElementById('appContent').style.display = 'none';
+        document.getElementById('loginScreen').style.display = 'flex';
+        document.getElementById('mainPassInput').value = '';
+    }
+
+    function setupPanel(badgeText, badgeClass, showAdminForm) {
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('appContent').style.display = 'block';
+        document.getElementById('modeBadge').innerText = badgeText;
+        document.getElementById('modeBadge').className = `mode-badge ${badgeClass}`;
+        document.getElementById('adminForm').style.display = showAdminForm ? 'block' : 'none';
+        
+        if (showAdminForm) {
+            document.getElementById('mainLayout').classList.remove('guest-mode');
+        } else {
+            document.getElementById('mainLayout').classList.add('guest-mode');
+        }
+
+        renderTasks();
+        updateDashboard();
+    }
+
+    btnAddTask.addEventListener('click', function() {
+        const title = document.getElementById('taskTitle').value;
+        if (!title.trim()) { alert('Görev başlığı boş bırakılamaz.'); return; }
+
+        const fileInput = document.getElementById('taskImageInput');
+        let imageBase64 = '';
+
+        if (fileInput.files && fileInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                imageBase64 = e.target.result;
+                createNewTask(title, imageBase64);
+            };
+            reader.readAsDataURL(fileInput.files[0]);
+        } else {
+            createNewTask(title, '');
+        }
+    });
+
+    function createNewTask(title, imageBase64) {
+        const newTask = {
+            id: Date.now(),
+            type: document.getElementById('taskType').value,
+            title: title,
+            duration: document.getElementById('taskDuration').value,
+            priority: 'slate',
+            desc: document.getElementById('taskDesc').value,
+            completed: false,
+            subtasks: [],
+            image: imageBase64
+        };
+
+        tasks.unshift(newTask);
+        saveTasks();
+
+        document.getElementById('taskTitle').value = '';
+        document.getElementById('taskDuration').value = '';
+        document.getElementById('taskDesc').value = '';
+        document.getElementById('taskImageInput').value = '';
+    }
+
+    function renderTasks() {
+        taskList.innerHTML = '';
+        
+        let filteredTasks = tasks.filter(t => {
+            if (currentFilter === 'routine') return t.type === 'routine';
+            return true;
+        });
+
+        filteredTasks.forEach(task => {
+            let durationText = task.duration ? `${task.duration} DK` : 'SÜRE YOK';
+            let routineHTML = task.type === 'routine' ? `<span class="routine-tag">RUTİN</span>` : '';
+            
+            let subtasksHTML = task.subtasks.length > 0 ? 
+                `<ul class="subtasks-list">${task.subtasks.map(s => `<li>${s}</li>`).join('')}</ul>` : '';
+
+            let imageHTML = task.image ? `<img src="${task.image}" class="task-image-preview" alt="Görev Görseli" />` : '';
+
+            let adminButtonsHTML = isAdmin ? `
+                <button class="btn-action" style="color:var(--success-steel); border-color:var(--success-steel);" onclick="toggleComplete(${task.id})">
+                    ${task.completed ? 'GERİ AL' : 'TAMAMLA'}
+                </button>
+                <button class="btn-action" style="color:var(--corporate-blue); border-color:var(--corporate-blue);" onclick="splitWithAI(${task.id})">AI ADIMLAR</button>
+                <button class="btn-action" style="color:#dc2626; border-color: rgba(220,38,38,0.3);" onclick="deleteTask(${task.id})">SİL</button>
+            ` : '';
+
+            const item = document.createElement('div');
+            item.className = `task-item ${task.completed ? 'completed' : ''}`;
+            item.innerHTML = `
+                <div class="task-header">
+                    <div class="task-info">
+                        <h3>${task.title}</h3>
+                        <div class="meta-tags">
+                            <span class="task-duration">${durationText}</span>
+                            ${routineHTML}
+                        </div>
+                    </div>
+                    <span class="badge">EN SON</span>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-action" onclick="toggleDesc(this)">DETAYLAR</button>
+                    ${adminButtonsHTML}
+                </div>
+                <div class="task-details">
+                    ${task.desc || 'Açıklama girilmedi.'}
+                    ${subtasksHTML}
+                    ${imageHTML}
+                </div>
+            `;
+            taskList.appendChild(item);
+        });
+    }
+
+    function toggleComplete(id) {
+        if (!isAdmin) return;
+        tasks = tasks.map(t => t.id === id ? {...t, completed: !t.completed} : t);
+        saveTasks();
+    }
+
+    function deleteTask(id) {
+        if (!isAdmin) return;
+        tasks = tasks.filter(t => t.id !== id);
+        saveTasks();
+    }
+
+    function toggleDesc(btn) {
+        const details = btn.parentElement.nextElementSibling;
+        details.style.display = details.style.display === 'block' ? 'none' : 'block';
+    }
+
+    function splitWithAI(id) {
+        if (!isAdmin) return;
+        tasks = tasks.map(t => {
+            if (t.id === id) {
+                t.subtasks = [
+                    "Aşama 1: Malzeme ve alan hazırlığı yapılması",
+                    "Aşama 2: Uygulama ve fiziki temizlik adımı",
+                    "Aşama 3: Son kontrol ve tamamlanma"
+                ];
+            }
+            return t;
+        });
+        saveTasks();
+    }
+
+    function filterTasks(filter, btn) {
+        currentFilter = filter;
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        renderTasks();
+    }
+
+    function updateDashboard() {
+        if (tasks.length === 0) {
+            document.getElementById('progressBar').style.width = '0%';
+            document.getElementById('progressText').innerText = 'İLERLEME: %0';
+            return;
+        }
+        const completedCount = tasks.filter(t => t.completed).length;
+        const percent = Math.round((completedCount / tasks.length) * 100);
+        
+        document.getElementById('progressBar').style.width = `${percent}%`;
+        document.getElementById('progressText').innerText = `İLERLEME: %${percent} (${completedCount}/${tasks.length})`;
+    }
+
+    document.getElementById('btnPomoStart').addEventListener('click', function() {
+        if (pomoInterval) {
+            clearInterval(pomoInterval);
+            pomoInterval = null;
+            this.innerText = 'BAŞLAT';
+        } else {
+            this.innerText = 'DURDUR';
+            pomoInterval = setInterval(() => {
+                pomoTime--;
+                let m = Math.floor(pomoTime / 60);
+                let s = pomoTime % 60;
+                document.getElementById('pomoTimer').innerText = `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
+                if (pomoTime <= 0) {
+                    clearInterval(pomoInterval);
+                    alert('Odaklanma periyodu tamamlandı.');
+                }
+            }, 1000);
+        }
+    });
+</script>
+
+</body>
+</html>
